@@ -35,12 +35,12 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-if exist "S:\EFI\BOOT" (
-    rd /s /q "S:\EFI\BOOT"
-)
-
 if exist "S:\EFI\Yours" (
     rd /s /q "S:\EFI\Yours"
+)
+
+if exist "S:\EFI\BOOT" (
+    rd /s /q "S:\EFI\BOOT"
 )
 
 echo Instalando Yours...
@@ -49,6 +49,22 @@ xcopy /E /I /Y /C /H /R "C:\MiLinux\Yours\Yours\" "S:\" > nul 2>&1
 if %errorlevel% neq 0 (
     echo Error en la copia. Es probable que la carpeta "C:\MiLinux\Yours" no exista.
     goto :hide_partition
+)
+
+echo Ajustando para iniciar Yours al encender la PC...
+
+rem Usa la ruta completa para bcdedit.exe
+C:\Windows\System32\bcdedit.exe /set {bootmgr} path \EFI\BOOT\BOOTX64.EFI
+
+if %errorlevel% neq 0 (
+    echo Error al ejecutar bcdedit. Intentando con PowerShell...
+
+    powershell -Command "C:\Windows\System32\bcdedit.exe /set '{bootmgr}' path '\EFI\BOOT\BOOTX64.EFI'"     
+
+    if %errorlevel% neq 0 (
+        echo Error al ejecutar bcdedit a través de PowerShell. 
+        goto :hide_partition
+    )
 )
 
 :hide_partition
